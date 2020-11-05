@@ -42,7 +42,8 @@ struct suffixString
     string s;
     int rank[2];
     int offset;
-    int prefixLength;
+    int prefixLength = 0;
+    int lengthOfString;
 };
 
 void printTable(suffixString table[], int n)
@@ -119,15 +120,17 @@ void buildSuffixArray(suffixString table[], string word, int *suffixArr, int n)
     {
         suffixArr[i] = i;
     }
-    
+
     //Build the initial table
     string suffix = "";
+    int length = 1;
     for (int i = n - 1; i >= 0; i--)
     {
         suffix = word[i] + suffix;
         table[i].s = suffix;
         table[i].offset = i;
         table[i].rank[0] = suffix[0]; //Remove 'a' for alphanumeric later
+        table[i].lengthOfString = length++;
     }
 
     // Sort the ranks logn times
@@ -184,57 +187,68 @@ void buildSuffixArray(suffixString table[], string word, int *suffixArr, int n)
         suffixArr[i] = table[i].offset;
         suffixWords.push_back(table[i].s);
     }
-    calculatePrefixLength(table, n);
+    // calculatePrefixLength(table, n);
+
     cout << "Offset "
          << "String "
-         << "Prefix Length" << endl;
+         << "Prefix Length"
+         << "Length of string" << endl;
+
     for (int i = 0; i < n; i++)
     {
-        cout << table[i].offset << " " << table[i].s << " " << table[i].prefixLength << endl;
+        cout << table[i].offset << " " << table[i].s << " " << table[i].lengthOfString << endl;
     }
 }
 
-string minLexRotation(int n)
+string minLexRotation(suffixString table[], int n)
 {
+
     for (int i = 0; i < n; i++)
     {
-        if (suffixWords[i].length() >= n)
+        if (table[i].offset <= n - 1)
             return suffixWords[i].substr(0, n);
     }
     return "ERROR OCCURED";
 }
 
-string longestSubstringAtLeastKTimes(suffixString table[],int suffixArr[],int n, int k)
+string longestSubstringAtLeastKTimes(suffixString table[], int suffixArr[], int n, int k)
 {
- 
+
     string a, b;
     int x;
-   int maxPreLength =0;
-   int preIndex=-1;
-    for (int i = 0; i <= n-k; i++)
+    int lengtha, lengthb;
+    int maxPreLength = 0;
+    int preIndex = -1;
+    for (int i = 0; i <= n - k; i++)
     {
         x = 0;
         a = table[i].s;
-        b = table[i+k-1].s;
-        while (x < a.length() && x < b.length() && (a[x] == b[x]))
+        b = table[i + k - 1].s;
+        lengtha = table[i].lengthOfString;
+        lengthb = table[i + k - 1].lengthOfString;
+
+        while (x < lengtha && x < lengthb && (a[x] == b[x]))
         {
             x++;
         }
 
-        if(x>maxPreLength) {
-            maxPreLength =x;
+        if (x > maxPreLength)
+        {
+            maxPreLength = x;
             preIndex = i;
         }
     }
-    if(preIndex==-1) return "-1";
+    if (preIndex == -1)
+        return "-1";
     return suffixWords[preIndex];
 }
+
 int main()
 {
     //string word = "123SaiSirishaNADIMINTI";
 
     string word;
-    cin >> word; 
+    cin >> word;
     int type;
     cin >> type;
     //0 1 2 14 15 21 16 18 17 13 19 3 6 20 12 4 11 5 7 9 8 10  - myanswer
@@ -244,10 +258,10 @@ int main()
     case 0:
     {
         //Not for assignment
-        //Just build a freaking suffix array
-           suffixString table[WORD_LENGTH];
+        //Just build a suffix array
+        suffixString table[WORD_LENGTH];
         int arr[WORD_LENGTH];
-        buildSuffixArray(table, word, arr,WORD_LENGTH);
+        buildSuffixArray(table, word, arr, WORD_LENGTH);
         break;
     }
     case 1:
@@ -255,8 +269,8 @@ int main()
         suffixString table[2 * WORD_LENGTH];
         int arr[2 * WORD_LENGTH];
         buildSuffixArray(table, word + word, arr, 2 * WORD_LENGTH);
-        cout << "Minimum lexographic rotation is: " << endl;
-        cout << minLexRotation(WORD_LENGTH);
+        // cout << "Minimum lexographic rotation is: " << endl;
+        cout << minLexRotation(table, WORD_LENGTH);
         cout << endl;
         break;
     }
@@ -264,76 +278,86 @@ int main()
     {
         suffixString table[WORD_LENGTH];
         int k;
-        cin>>k;
+        cin >> k;
         int arr[WORD_LENGTH];
         buildSuffixArray(table, word, arr, WORD_LENGTH);
-        cout<<longestSubstringAtLeastKTimes(table, arr,WORD_LENGTH, k)<<endl;
-    
-    break;
+        cout << longestSubstringAtLeastKTimes(table, arr, WORD_LENGTH, k) << endl;
+
+        break;
     }
-    case 3:{
+    case 3:
+    {
         string rev;
         rev = word;
-        int totLength = (WORD_LENGTH*2)+2;
+        int totLength = (WORD_LENGTH * 2) + 2;
         suffixString table[totLength];
         int arr[totLength];
-        
-        reverse(rev.begin(),rev.end());
-        buildSuffixArray(table, word+"#"+rev+"$", arr, totLength);
-     int maxPrefix=0;
-        string sub="";
-        for(int i=1;i<totLength;i++){
+
+        reverse(rev.begin(), rev.end());
+        buildSuffixArray(table, word + "#" + rev + "$", arr, totLength);
+        calculatePrefixLength(table, totLength);
+        int maxPrefix = 0;
+        string sub = "";
+        for (int i = 1; i < totLength; i++)
+        {
             // string 1 will have offset from 0 to a-1
             // string 2 will have offset from a+1 to a+b-1
-  if (((table[i].offset<=WORD_LENGTH-1 && table[i-1].offset>=WORD_LENGTH+1) || (table[i-1].offset<=WORD_LENGTH-1 && table[i].offset>=WORD_LENGTH+1))   ){
-            if(table[i].offset-0 == (totLength - (table[i-1].offset + table[i].prefixLength+1))){
-            if(table[i].prefixLength>maxPrefix){
-            // The prefix must be of two different strings
-              
-            //Distance from 0 to start of string 1 should be equal to distance from end of string2 to totallength
-            
-            maxPrefix=table[i].prefixLength;
-          
-            sub = suffixWords[i].substr(0,maxPrefix);
-            }
+            if (((table[i].offset <= WORD_LENGTH - 1 && table[i - 1].offset >= WORD_LENGTH + 1) || (table[i - 1].offset <= WORD_LENGTH - 1 && table[i].offset >= WORD_LENGTH + 1)))
+            {
+                if (table[i].offset - 0 == (totLength - (table[i - 1].offset + table[i].prefixLength + 1)))
+                {
+                    if (table[i].prefixLength > maxPrefix)
+                    {
+                        // The prefix must be of two different strings
+
+                        //Distance from 0 to start of string 1 should be equal to distance from end of string2 to totallength
+
+                        maxPrefix = table[i].prefixLength;
+
+                        sub = suffixWords[i].substr(0, maxPrefix);
+                    }
                 }
             }
         }
-        cout<<"palindrome: "<<sub<<endl;
+        cout << "palindrome: " << sub << endl;
         break;
     }
-case 4:{
-    //Not for assignment - Longest common substring
-    
-    string string1, string2;
-    cin>>string1>>string2;
-    int a = string1.length();
-    int b = string2.length();
-    int totLength = a+b+2;
-       // rev = word;
+    case 4:
+    {
+        //Not for assignment - Longest common substring
+
+        string string1, string2;
+        cin >> string1 >> string2;
+        int a = string1.length();
+        int b = string2.length();
+        int totLength = a + b + 2;
+        // rev = word;
         suffixString table[totLength];
         int arr[totLength];
-        
+
         //reverse(rev.begin(),rev.end());
-        buildSuffixArray(table, string1+"#"+string2+"$", arr, totLength);
-        int maxPrefix=0;
-        string sub="";
-        for(int i=1;i<totLength;i++){
+        buildSuffixArray(table, string1 + "#" + string2 + "$", arr, totLength);
+        int maxPrefix = 0;
+        string sub = "";
+        for (int i = 1; i < totLength; i++)
+        {
             // string 1 will have offset from 0 to a-1
             // string 2 will have offset from a+1 to a+b-1
 
-            if(table[i].prefixLength>maxPrefix){
-            // The prefix must be of two different strings
-                if ((table[i].offset<=a-1 && table[i-1].offset>=a+1) || (table[i-1].offset<=a-1 && table[i].offset>=a+1)){
-            maxPrefix=table[i].prefixLength;
-            sub = suffixWords[i].substr(0,maxPrefix);
-            }
+            if (table[i].prefixLength > maxPrefix)
+            {
+                // The prefix must be of two different strings
+                if ((table[i].offset <= a - 1 && table[i - 1].offset >= a + 1) || (table[i - 1].offset <= a - 1 && table[i].offset >= a + 1))
+                {
+                    maxPrefix = table[i].prefixLength;
+                    sub = suffixWords[i].substr(0, maxPrefix);
+                }
             }
         }
-        cout<<"substring: "<<sub<<endl;
+        cout << "substring: " << sub << endl;
 
         break;
-}
+    }
 
     default:
     {
