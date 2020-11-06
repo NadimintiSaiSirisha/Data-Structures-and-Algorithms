@@ -6,9 +6,9 @@ Suffix tree is a sorted array fo all suffixes of the string
 0 1 2 3 4 5
 b a n a n a suffixes:
 
-0 banana - 
+0 banana -
 1 anana -
-2 nana                 
+2 nana
 3 ana -
 4 na
 5 a -
@@ -242,6 +242,8 @@ string longestSubstringAtLeastKTimes(suffixString table[], int suffixArr[], int 
         return "-1";
     return suffixWords[preIndex];
 }
+
+
 
 int main()
 {

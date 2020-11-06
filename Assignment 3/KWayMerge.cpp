@@ -1,8 +1,10 @@
 #include <iostream>
 #include <vector>
 #define deb(x) cout << #x << ": " << x << endl
-#define CHUNCK_SIZE 100000
+#define CHUNCK_SIZE 10000 // 2 mb
 using namespace std;
+
+//find . -type f -name file\* -exec rm {} \; //remove files
 
 struct MinHeapNode
 {
@@ -366,7 +368,7 @@ void kWayMerge(long long int k)
 int main()
 {
     long long int k;
-    k = openFile("data/input1000000.txt");
+    k = openFile("data/inputBig.txt");
     kWayMerge(k);
     return 0;
 }
